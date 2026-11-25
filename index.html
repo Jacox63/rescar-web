@@ -178,7 +178,9 @@ textarea{min-height:96px;resize:vertical}
 .check a{color:var(--verde);text-decoration:underline}
 .hp{position:absolute;left:-9999px}
 .campos{display:grid;gap:1.15rem}
-.ok{display:none;text-align:center;gap:1rem;justify-items:center;padding:1rem 0}
+.ok{display:none;text-align:center;gap:1rem;justify-items:center;padding:1rem 0;align-content:start}
+form.lead.enviado{align-content:start}
+.ok h3{animation:entra .6s ease both}@keyframes entra{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .ok h3{font-size:2.2rem}
 .datos{display:grid;gap:1.2rem;margin-top:2rem}
 .dato{display:flex;gap:1rem;align-items:center}
@@ -506,7 +508,9 @@ $('#form').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#err');
   const resumen=`Hola, soy ${d.nombre}. ${d.interes}${d.lote?` (lote ${d.lote})`:''} en La Virginia.${d.fecha?` Me gustaría visitar el ${d.fecha}.`:''}${d.mensaje?` ${d.mensaje}`:''}`;
   let guardado=false;try{await fetch(LEADS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(d)});guardado=true}catch(_){}
   $('#okNombre').textContent=d.nombre.split(' ')[0];$('#okWa').href=waLink(resumen);
-  f.querySelector('.campos').style.display='none';$('#ok').style.display='grid';
+  // al enviar, la pantalla queda centrada en el «¡Gracias!» (no se queda abajo ni salta)
+  f.classList.add('enviado');f.querySelector('.campos').style.display='none';$('#ok').style.display='grid';
+  document.documentElement.style.scrollBehavior='auto';$('#ok').scrollIntoView({block:'center',behavior:'instant'});document.documentElement.style.scrollBehavior='';
   if(!guardado){$('#ok p').textContent='No pudimos registrar tus datos automáticamente. Envíanos el mensaje por WhatsApp para atenderte de inmediato:'}
   if(typeof fbq==='function')fbq('track','Lead');};
 </script>
