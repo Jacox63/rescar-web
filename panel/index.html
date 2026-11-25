@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Panel de leads · RESCAR</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--verde:#0E3A32;--cobre:#B98A5D;--marfil:#F3EFE6}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,system-ui,sans-serif;background:var(--marfil);color:#1b1f1c;font-size:15px}
+header{background:var(--verde);color:#fff;padding:16px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header b{font-family:Montserrat,sans-serif;letter-spacing:.25em}header span{opacity:.7;font-size:.85rem}
+header .der{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+button,select,input{font:inherit}.btn{border:0;border-radius:999px;padding:.55em 1.1em;cursor:pointer;background:var(--cobre);color:#fff}
+.btn.g{background:#fff;color:var(--verde)}.btn.w{background:#25D366}
+main{padding:18px;max-width:1300px;margin:auto}
+.res{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.res div{background:#fff;border-radius:12px;padding:12px 16px;min-width:130px}.res b{font-size:1.6rem;display:block}
+.filtro{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.filtro input,.filtro select{padding:.55em .9em;border:1px solid #d8d2c4;border-radius:10px;background:#fff}
+.lead{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:1.2fr 1fr 1.6fr auto;gap:12px;align-items:center;border-left:4px solid var(--cobre)}
+.lead.contactado{border-left-color:#2f8f5b}.lead.descartado{opacity:.55;border-left-color:#999}.lead.cliente{border-left-color:var(--verde)}
+.lead small{color:#6b716c;display:block}.lead .acc{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.lead textarea{width:100%;border:1px solid #e3ddd0;border-radius:8px;padding:6px 8px;font:inherit;font-size:.85rem;min-height:38px}
+@media(max-width:860px){.lead{grid-template-columns:1fr}.lead .acc{justify-content:flex-start}}
+#login{max-width:380px;margin:12vh auto;background:#fff;border-radius:16px;padding:28px;display:grid;gap:12px}
+#login input{padding:.8em 1em;border:1px solid #d8d2c4;border-radius:10px}
+.vacio{text-align:center;color:#6b716c;padding:40px}
+</style></head><body>
+<header><b>RESCAR</b><span>Panel de leads</span><div class="der" id="acciones" hidden><button class="btn g" id="recargar">Actualizar</button><button class="btn g" id="csv">Descargar CSV</button><button class="btn" id="salir">Salir</button></div></header>
+<form id="login"><h2 style="font-weight:600">Entrar al panel</h2><p style="color:#6b716c;font-size:.9rem">Escribe la clave del panel (la variable PANEL_KEY configurada en Cloudflare).</p>
+<input type="password" id="clave" placeholder="Clave del panel" autocomplete="current-password" required><button class="btn" style="padding:.8em">Entrar</button><p id="loginErr" style="color:#a33;font-size:.85rem"></p></form>
+<main id="app" hidden>
+  <div class="res" id="res"></div>
+  <div class="filtro"><input id="buscar" placeholder="Buscar nombre, celular o lote"><select id="festado"><option value="">Todos los estados</option><option>nuevo</option><option>contactado</option><option>cliente</option><option>descartado</option></select></div>
+  <div id="lista"></div>
+</main>
+<script>
+const $=s=>document.querySelector(s);let KEY=sessionStorage.getItem('pk')||'',LEADS=[];
+const api=(m,b)=>fetch('/api/leads',{method:m,headers:{'X-Panel-Key':KEY,'Content-Type':'application/json'},body:b&&JSON.stringify(b)});
+const saludo=l=>`Hola ${l.nombre.split(' ')[0]}, te escribo de RESCAR Propiedad Raíz. Recibimos tu solicitud sobre La Virginia${l.lote?` (lote ${l.lote})`:''}. ¿Cuándo te queda bien que hablemos o agendemos la visita?`;
+async function cargar(){const r=await api('GET');if(r.status===401){sessionStorage.removeItem('pk');KEY='';$('#login').hidden=false;$('#app').hidden=true;$('#acciones').hidden=true;$('#loginErr').textContent='Clave incorrecta.';return}
+  const d=await r.json();LEADS=d.leads||[];$('#login').hidden=true;$('#app').hidden=false;$('#acciones').hidden=false;pintar()}
+function pintar(){const q=$('#buscar').value.toLowerCase(),fe=$('#festado').value;
+  const c=e=>LEADS.filter(l=>l.estado===e).length;
+  $('#res').innerHTML=`<div><b>${LEADS.length}</b>Leads</div><div><b>${c('nuevo')}</b>Nuevos</div><div><b>${c('contactado')}</b>Contactados</div><div><b>${c('cliente')}</b>Clientes</div>`;
+  const ls=LEADS.filter(l=>(!fe||l.estado===fe)&&(!q||[l.nombre,l.celular,l.lote,l.correo].join(' ').toLowerCase().includes(q)));
+  $('#lista').innerHTML=ls.length?ls.map(l=>`<div class="lead ${l.estado}" data-id="${l.id}">
+    <div><b>${l.nombre}</b><small>${new Date(l.fecha).toLocaleString('es-CO',{dateStyle:'medium',timeStyle:'short'})} · ${l.ciudad||''}</small><small>+${l.celular}${l.correo?' · '+l.correo:''}</small></div>
+    <div><b>${l.interes||''}</b><small>${l.lote?'Lote '+l.lote:'Sin lote'}${l.visita?' · visita '+l.visita:''}</small><small>Origen: ${l.origen||'—'}</small></div>
+    <div><small>${l.mensaje||'Sin mensaje'}</small><textarea placeholder="Notas internas" data-n>${l.notas||''}</textarea></div>
+    <div class="acc"><a class="btn w" target="_blank" rel="noopener" href="https://wa.me/${l.celular}?text=${encodeURIComponent(saludo(l))}">WhatsApp</a>
+      <select data-e>${['nuevo','contactado','cliente','descartado'].map(e=>`<option ${e===l.estado?'selected':''}>${e}</option>`).join('')}</select></div></div>`).join(''):'<p class="vacio">Todavía no hay leads con ese filtro.</p>';
+  document.querySelectorAll('.lead').forEach(el=>{const id=el.dataset.id;
+    el.querySelector('[data-e]').onchange=async e=>{await api('PATCH',{id,estado:e.target.value});LEADS.find(l=>l.id===id).estado=e.target.value;pintar()};
+    el.querySelector('[data-n]').onchange=async e=>{await api('PATCH',{id,notas:e.target.value});LEADS.find(l=>l.id===id).notas=e.target.value}})}
+$('#login').onsubmit=e=>{e.preventDefault();KEY=$('#clave').value;sessionStorage.setItem('pk',KEY);cargar()};
+$('#recargar').onclick=cargar;$('#salir').onclick=()=>{sessionStorage.removeItem('pk');location.reload()};
+$('#buscar').oninput=pintar;$('#festado').onchange=pintar;
+$('#csv').onclick=()=>{const cols=['fecha','nombre','celular','correo','interes','lote','visita','mensaje','estado','notas','origen','ciudad'];
+  const csv=[cols.join(';'),...LEADS.map(l=>cols.map(c=>`"${String(l[c]??'').replace(/"/g,'""')}"`).join(';'))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));a.download='leads_rescar.csv';a.click()};
+if(KEY)cargar();
+</script></body></html>
