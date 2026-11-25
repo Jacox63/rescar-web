@@ -22,7 +22,7 @@ L2 = os.path.join(ORIG[1])
 AE = os.path.join(RES, 'RESCAR_LA_VIRGINIA_PRODUCCION', '01_ORIGINALES', 'Aereos', 'lotes_vistos_desde_arriba.mp4')
 G = "eq=contrast=1.04:saturation=1.08,colorbalance=rs=0.02:bs=-0.02"
 # portada escritorio (horizontal): paneo de lotes y montaña
-ff('-ss', '0.5', '-t', '9', '-i', os.path.join(L2, 'IMG_6378.MOV'), '-an', '-vf', f'scale=1920:-2,fps=30,{G}',
+ff('-ss', '0.3', '-t', '7.3', '-i', os.path.join(L2, 'IMG_6384.MOV'), '-an', '-vf', f'scale=1920:-2,fps=30,{G}',
    '-c:v', 'libx264', '-crf', '27', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', os.path.join(WEB, 'vid', 'hero.mp4'))
 # portada celular (vertical): aéreo de los lotes, decimado (24 cps reales) y a velocidad real
 ff('-i', AE, '-an', '-vf', f'decimate=cycle=5,setpts=N/24/TB,scale=720:-2,{G}', '-r', '24', '-c:v', 'libx264', '-crf', '27',
