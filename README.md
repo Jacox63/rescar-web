@@ -7,19 +7,18 @@ Sitio de la marca RESCAR con su proyecto actual, **La Virginia** (condominio cam
 index.html            Página completa (HTML, CSS y JS)
 lotes.json            Lotes: estado, área, precio, fotos, polígono en el plano. Se actualiza aquí, sin tocar el diseño.
 img/ vid/             Fotos (WebP desde los originales 4K del 9-nov-2026) y videos reales
-functions/api/lead.js  Recibe el formulario y guarda cada lead en Cloudflare KV
-functions/api/leads.js Lista y actualiza leads para el panel (protegido con PANEL_KEY)
-panel/                 Panel de leads: /panel (botón directo a WhatsApp de cada cliente, estados, notas, CSV)
+panel/                 /panel abre la hoja de Google con los leads
+tools/apps_script_leads.gs  Recepción de leads (Google Apps Script)
 tools/                 Scripts para regenerar medios y capturas
 ```
 
-## Publicación (Cloudflare Pages, gratis)
-1. Cloudflare → Workers & Pages → Create → Pages → conectar este repositorio. Build command: vacío. Output: `/`.
-2. Workers & Pages → KV → crear el espacio `rescar-leads`.
-3. En el proyecto Pages → Settings → Bindings → KV namespace: variable `LEADS` → `rescar-leads`.
-4. Settings → Variables and secrets → agregar el secreto `PANEL_KEY` (la clave del panel; la escribe el dueño).
-5. (Opcional) `TELEGRAM_TOKEN` y `TELEGRAM_CHAT` para aviso instantáneo de cada lead.
-La URL queda como `https://rescar.pages.dev` (o similar) hasta conectar un dominio propio.
+## Publicación (GitHub Pages)
+Settings → Pages → Deploy from a branch → `main` / `/ (root)`. Queda en `https://jacox63.github.io/rescar-web/` hasta conectar un dominio propio (Settings → Pages → Custom domain).
+
+## Leads
+El formulario envía cada lead a un Google Apps Script (`tools/apps_script_leads.gs`) ligado a la hoja **RESCAR · Leads web** del dueño:
+fila nueva con enlace directo a WhatsApp + correo de aviso. `/panel` abre esa hoja (solo con la cuenta de Google del dueño).
+La URL de la implementación va en `LEADS_URL` dentro de `index.html`.
 
 ## Actualizar disponibilidad
 En `lotes.json`: `estado` (`disponible`, `reservado`, `vendido`), `precio` en pesos, `actualizado` (AAAA-MM-DD).

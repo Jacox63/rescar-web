@@ -422,6 +422,8 @@ footer .legal{border-top:1px solid rgba(255,255,255,.08);padding-top:22px;paddin
 
 <script>
 const WA='573215084384';
+// Recepción de leads: Google Apps Script ligado a la hoja «RESCAR · Leads web» (ver tools/apps_script_leads.gs)
+const LEADS_URL='https://script.google.com/macros/s/AKfycbxQq_NB4ihcw5cMiXoADeol2mgdgZBxikfImZv-yTiRgvcC4e5Bk2Q9ky-JlFUlYKQwrQ/exec';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>'$'+Math.round(n/1e6).toLocaleString('es-CO')+' M';
 const m2=n=>Math.round(n).toLocaleString('es-CO')+' m²';
@@ -502,7 +504,7 @@ $('#form').onsubmit=async e=>{e.preventDefault();const f=e.target,err=$('#err');
   d.origen=qs.get('utm_source')||document.referrer||'directo';d.campana=qs.get('utm_campaign')||'';d.pagina=location.pathname;
   const b=$('#enviar');b.disabled=true;b.textContent='Enviando…';
   const resumen=`Hola, soy ${d.nombre}. ${d.interes}${d.lote?` (lote ${d.lote})`:''} en La Virginia.${d.fecha?` Me gustaría visitar el ${d.fecha}.`:''}${d.mensaje?` ${d.mensaje}`:''}`;
-  let guardado=false;try{const r=await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});guardado=r.ok}catch(_){}
+  let guardado=false;try{await fetch(LEADS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(d)});guardado=true}catch(_){}
   $('#okNombre').textContent=d.nombre.split(' ')[0];$('#okWa').href=waLink(resumen);
   f.querySelector('.campos').style.display='none';$('#ok').style.display='grid';
   if(!guardado){$('#ok p').textContent='No pudimos registrar tus datos automáticamente. Envíanos el mensaje por WhatsApp para atenderte de inmediato:'}
